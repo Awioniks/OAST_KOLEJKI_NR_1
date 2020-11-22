@@ -13,12 +13,14 @@ def simulate(simulation_type):
     """
 
     sim = Simulation(simulation_type)
+    results = {}
     for _ in range(c.REPLICANTS):
         for lambda_value in c.LAMBDA_RATES:
             result = sim.run(lambda_value)
+            results[lambda_value] = result
             sim.clear()
 
 
 if __name__ == '__main__':
     simulate(SimType.COM_SIM)
-    simulate(SimType.CON_SIM)
+    # simulate(SimType.CON_SIM)

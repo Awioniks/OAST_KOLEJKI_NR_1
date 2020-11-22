@@ -1,8 +1,9 @@
+import logging
 from enum import Enum
 
 import config as c
 import statistics as stat
-from event import Event, EventType
+from event import Event, EventType, ClientType
 from server import Server
 
 
@@ -25,6 +26,15 @@ class Simulation():
         self.events = []
         self.stats_event = {}
         self.server = Server()
+        self.real_clients = 0
+        self.configure_logging()
+
+    def configure_logging(self):
+        """
+        Configure loggingging.
+        """
+        logging.basicConfig(
+            format='%(asctime)s %(message)s', level=logging.INFO)
 
     def init_events(self, lambda_param):
         """
@@ -32,11 +42,17 @@ class Simulation():
         """
 
         occurrence_time = 0
-        while occurrence_time > c.SIMULATION_TIME:
+        while occurrence_time < c.SIMULATION_TIME:
             event_duration = stat.expotential_value(
                 lambda_param)
             occurrence_time += event_duration
-            self.events.append(Event(occurrence_time, EventType.IN_EVENT))
+            new_event = self.create_event(
+                occurrence_time,
+                EventType.IN_EVENT,
+                ClientType.REAL_CLIENT)
+            self.events.append(new_event)
+        self.events = self.sort_events()
+        self.real_clients = len(self.events)
 
     def handle_events(self, lambda_param):
         """
@@ -46,37 +62,45 @@ class Simulation():
         while self.events:
             current_event = self.events.pop()
             current_time = current_event.occurrence_time
+            logging.info(current_event)
             if current_event.event_type == EventType.IN_EVENT:
                 if not self.server.clients_in_server:
                     time_in_server = stat.expotential_value(lambda_param)
                     new_event = self.create_event(
                         time_in_server + current_time,
                         EventType.OUT_EVENT,
+                        current_event.client_type,
                         current_event.client_id)
                     self.events.append(new_event)
-                    self.server.add_client(
-                        current_event.client_id, current_time)
-                else:
-                    self.server.add_client(
-                        current_event.client_id, current_time)
+                self.server.add_client(current_event.client_id, current_time)
             elif current_event.event_type == EventType.OUT_EVENT:
                 # Delete client from system and get stats.
+                if current_event.client_type == ClientType.REAL_CLIENT:
+                    self.real_clients -= 1
                 self.server.delete_client(current_event.client_id)
                 # Create new out event from queue.
                 time_in_server = stat.expotential_value(lambda_param)
-                client_time, client_id = self.server.get_queue_first_client()
-                new_event = self.create_event(
-                    current_time + time_in_server,
-                    EventType.OUT_EVENT,
-                    client_id)
-                new_event.set_time_in_queue(current_time - client_time)
-                self.events.append(new_event)
-                self.server.add_client(current_event.client_id, current_time)
-
-
+                if not self.server.is_server_empty():
+                    logging.info("Server occupied")
+                    cl_id, cl_time = self.server.get_queue_first_client()
+                    new_event = self.create_event(
+                        current_time + time_in_server,
+                        EventType.OUT_EVENT,
+                        ClientType.REAL_CLIENT,
+                        cl_id)
+                    new_event.set_time_in_queue(current_time - cl_time)
+                    self.events.append(new_event)
+                # Create event with imagined client.
+                elif self.sim_type == SimType.CON_SIM and self.real_clients:
+                    logging.info("Imagined client created")
+                    new_event = self.create_event(
+                        current_time,
+                        EventType.IN_EVENT,
+                        ClientType.IMAGINED_CLIENT)
+                    self.events.append(new_event)
             # Sort events on event list and get stats
             self.add_stats(current_event)
-            self.sort_events()
+            self.events = self.sort_events()
 
         return self.stats_event
 
@@ -89,23 +113,24 @@ class Simulation():
         self.stats_event[key] = (
             stats_event['oc_time'], stats_event['qu_time'])
 
-    def create_event(self, finish_time, event_type, client_id):
+    def create_event(self, finish_time, ev_type, client_type, client_id=None):
         """
         Create event object.
         """
         return Event(
             finish_time,
-            event_type,
-            client_type)
+            ev_type,
+            client_type,
+            client_id)
 
     def sort_events(self):
         """
         Sort events according to timestamps.
         """
-        sorted(
-            self.events,
-            key=lambda timestamp: getattr(timestamp, 'occurrence_time'),
-            reverse=True)
+        return sorted(
+                self.events,
+                key=lambda timestamp: getattr(timestamp, 'occurrence_time'),
+                reverse=True)
 
     def run(self, lambda_param):
         """

@@ -3,7 +3,9 @@
 Main file where 2 simulations are triggered
 """
 
+from collections import defaultdict
 import config as c
+import statistics as stats
 from simulation import Simulation, SimType
 
 
@@ -13,14 +15,16 @@ def simulate(simulation_type):
     """
 
     sim = Simulation(simulation_type)
-    results = {}
-    for _ in range(c.REPLICANTS):
-        for lambda_value in c.LAMBDA_RATES:
+    results = defaultdict(list)
+    for lambda_value in c.LAMBDA_RATES:
+        for _ in range(c.REPLICANTS):
             result = sim.run(lambda_value)
-            results[lambda_value] = result
+            results[lambda_value].append(result.copy())
             sim.clear()
+    return results
 
 
 if __name__ == '__main__':
-    #simulate(SimType.COM_SIM)
-    simulate(SimType.CON_SIM)
+    for sim_type in [SimType.CON_SIM]:
+        results = simulate(sim_type)
+        stats.show_statistics(sim_type, results)

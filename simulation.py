@@ -25,6 +25,7 @@ class Simulation():
     def __init__(self, sim_type):
         self.sim_type = sim_type
         self.events = []
+        self.clients_stats = []
         self.stats_event = defaultdict(dict)
         self.server = Server()
         self.real_clients = 0
@@ -106,10 +107,11 @@ class Simulation():
                         ClientType.IMAGINED_CLIENT)
                     self.events.append(new_event)
             # Sort events on event list and get stats
-            self.add_stats(current_event)
             self.events = self.sort_events()
+            self.add_stats(current_event)
+            self.add_clients_stats()
 
-        return self.stats_event
+        return self.stats_event, self.clients_stats
 
     def all_server_stats(self):
         """
@@ -120,6 +122,13 @@ class Simulation():
             "all_clients_queue": self.server.all_clients_in_queue
         }
 
+    def add_clients_stats(self):
+        """
+        Prepeare client stats in system.
+        """
+        cu_nr_in_serv, cu_nr_in_qu = self.server.get_server_stats()
+        self.clients_stats.append((cu_nr_in_qu, cu_nr_in_serv))
+
     def add_stats(self, current_event):
         """
         Add stats to dict stats which will be calculated.
@@ -127,11 +136,9 @@ class Simulation():
         stats_event = current_event.get_event_stats()
         ev_type = stats_event['event_type']
         cl_id = stats_event['client_id']
-        cu_nr_in_serv, cu_nr_in_qu = self.server.get_server_stats()
 
         self.stats_event[ev_type][cl_id] = (
-            stats_event['oc_time'], stats_event['qu_time'],
-            cu_nr_in_serv, cu_nr_in_qu)
+            stats_event['oc_time'], stats_event['qu_time'])
 
     def create_event(self, finish_time, ev_type, client_type, client_id=None):
         """
@@ -160,6 +167,7 @@ class Simulation():
         return self.handle_events(lambda_param)
 
     def clear(self):
+        self.clients_stats.clear()
         self.events.clear()
         self.stats_event.clear()
         self.server.clear_server()

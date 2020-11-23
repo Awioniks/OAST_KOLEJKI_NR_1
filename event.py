@@ -38,10 +38,11 @@ class Event():
         """
         Show event.
         """
-        repr = "{} - cl_id, {} - ev_type, {} - cl_type, {} - oc_time\n"
+        repr = "{} - cl_id, {} - ev_type, {} - cl_type, {} - oc_time, {} - time_queue\n"
         return repr.format(
             self.client_id, self.event_type,
-            self.client_type, self.occurrence_time)
+            self.client_type, self.occurrence_time,
+            self.time_in_queue)
 
     def set_time_in_queue(self, time_in_queue):
         """
@@ -53,9 +54,9 @@ class Event():
         """
         Get important stats from out events.
         """
-        key_format = "{}_{}".format(self.client_id, self.event_type)
         return {
             'oc_time': self.occurrence_time,
             'qu_time': self.time_in_queue,
-            'key': key_format
+            'client_id': self.client_id,
+            'event_type': self.event_type
         }

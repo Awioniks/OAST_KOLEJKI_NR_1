@@ -22,5 +22,5 @@ def simulate(simulation_type):
 
 
 if __name__ == '__main__':
-    simulate(SimType.COM_SIM)
-    # simulate(SimType.CON_SIM)
+    #simulate(SimType.COM_SIM)
+    simulate(SimType.CON_SIM)

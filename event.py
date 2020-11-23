@@ -24,18 +24,30 @@ class Event():
     """
     Represent event class which is added to queue
     """
-    def __init__(self, time_to_save, event_type, client_type, id=None):
+    def __init__(self, time_to_save, event_type, client_type, client_id=None):
         self.occurrence_time = time_to_save
         self.event_type = event_type
         self.client_type = client_type
-        self.client_id = uuid.UUID() if not id else id
+        if not client_id:
+            self.client_id = str(uuid.uuid4())
+        else:
+            self.client_id = client_id
         self.time_in_queue = 0
+
+    def __repr__(self):
+        """
+        Show event.
+        """
+        repr = "{} - cl_id, {} - ev_type, {} - cl_type, {} - oc_time\n"
+        return repr.format(
+            self.client_id, self.event_type,
+            self.client_type, self.occurrence_time)
 
     def set_time_in_queue(self, time_in_queue):
         """
         Set time in queue
         """
-        self.set_time_in_queue = time_in_queue
+        self.time_in_queue = time_in_queue
 
     def get_event_stats(self):
         """

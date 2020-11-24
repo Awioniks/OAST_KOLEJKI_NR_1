@@ -6,6 +6,7 @@ from collections import defaultdict
 from random import random
 import config as c
 from simulation import SimType, EventType
+import matplotlib.pyplot as mpl
 
 
 def show_statistics(simulation_type, results, client_results):
@@ -13,10 +14,10 @@ def show_statistics(simulation_type, results, client_results):
     Show statistics from queue.
     """
     title = '\n\n\n{} Avg Delays for {} simulation {}'.format(
-        10*'*', simulation_type,  10*'*')
+        10 * '*', simulation_type, 10 * '*')
     print(title)
     if simulation_type == SimType.COM_SIM:
-        avg_delays, p0_t = calculate_delays_pO_values(results)
+        avg_delays, p0_x, p0_y = calculate_delays_pO_values(results)
         avg_delay = calculate_avg_delay_wait(avg_delays)
         for lambda_rate in avg_delay:
             avg = avg_delay[lambda_rate]
@@ -25,6 +26,14 @@ def show_statistics(simulation_type, results, client_results):
             stat = '\n{}. - lambda_rate, {:f} - avg, {:f} - avg analytical '.format(
                 lambda_rate, avg, delay_analytical)
             print(stat)
+            # print(p0_x[lambda_rate])
+            # print(p0_y[lambda_rate])
+            # draw plot
+            x = np.array(p0_x[lambda_rate])
+            y = np.array(p0_y[lambda_rate])
+            mpl.plot(x, y)
+            mpl.show()
+
     elif simulation_type == SimType.CON_SIM:
         qu_times, avg_delays = calculate_avg_time_in_queue(results)
         avg_delay = calculate_avg_delay_wait(avg_delays)
@@ -34,7 +43,7 @@ def show_statistics(simulation_type, results, client_results):
             avg_d = avg_delay[lambda_rate]
             avg_q = avg_qu[lambda_rate]
             # Calculate analytical delay and wait time.
-            rate = lambda_rate/c.MI_RATE
+            rate = lambda_rate / c.MI_RATE
             delay_analytical = ((2 - rate) * rate) / (lambda_rate * (1 - rate))
             wait_analytical = rate / (lambda_rate * (1 - rate))
             stat = '\n{}. - lambda_rate, {:f} - avg_delay, {:f} - avg_delay_analytical'.format(
@@ -45,7 +54,7 @@ def show_statistics(simulation_type, results, client_results):
             print(stat)
             # Calculate analytical clients rates.
             in_sys, in_q = (
-                cl_stats[lambda_rate]["in_system"],  cl_stats[lambda_rate]["in_queue"])
+                cl_stats[lambda_rate]["in_system"], cl_stats[lambda_rate]["in_queue"])
             an_nr_clients_in_queue = rate / (1 - rate)
             an_nr_clients_in_system = ((2 - rate) * rate) / (1 - rate)
             stat = '{:f} - avg_client_in_system, {:f} - avg_client_in_system_analytical'.format(
@@ -67,9 +76,9 @@ def calculate_client_stats(client_results):
             nr_in_system += (nr_in_qu + nr_in_serv)
             nr_in_queue += nr_in_qu
         clients_stats[lambda_rate]["in_system"] = (
-            nr_in_system / len(result))
+                nr_in_system / len(result))
         clients_stats[lambda_rate]["in_queue"] = (
-            nr_in_queue / len(result))
+                nr_in_queue / len(result))
     return clients_stats
 
 
@@ -107,7 +116,8 @@ def calculate_delays_pO_values(results):
     Calculate avg delays for normal queue.
     """
     avg_delays = defaultdict(list)
-    p0_t = defaultdict(list)
+    p0_x = defaultdict(list)
+    p0_y = defaultdict(list)
     for lambda_param, result in results.items():
         for rep in result:
             for client_id, client_stats in rep[EventType.IN_EVENT].items():
@@ -118,10 +128,11 @@ def calculate_delays_pO_values(results):
                 delay = oc_out_time - oc_in_time
                 p0 = (delay - qu_time) / (delay)
                 avg_delays[lambda_param].append(delay)
-                p0_t[lambda_param].append((oc_in_time, p0))
-    return avg_delays, p0_t
+                p0_x[lambda_param].append(oc_in_time)
+                p0_y[lambda_param].append(p0)
+    return avg_delays, p0_x, p0_y
 
 
 def expotential_value(lambda_value):
     w = 1 - random()
-    return -1 * (np.log(w)/lambda_value)
+    return -1 * (np.log(w) / lambda_value)

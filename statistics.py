@@ -33,6 +33,7 @@ def show_statistics(simulation_type, results, client_results):
             mpl.plot(x, m * x + b, 'r-')
             mpl.xlabel('Time')
             mpl.ylabel('Probability')
+            mpl.title("p0(t) for lambda = {:f} ".format(lambda_rate))
             mpl.show()
 
     elif simulation_type == SimType.CON_SIM:

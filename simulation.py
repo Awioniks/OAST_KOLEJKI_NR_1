@@ -29,6 +29,10 @@ class Simulation():
         self.stats_event = defaultdict(dict)
         self.server = Server()
         self.real_clients = 0
+        self.clients_counter = {
+            ClientType.REAL_CLIENT: 0,
+            ClientType.IMAGINED_CLIENT: 0
+        }
         self.configure_logging()
 
     def configure_logging(self):
@@ -55,6 +59,7 @@ class Simulation():
             self.events.append(new_event)
         self.events = self.sort_events()
         self.real_clients = len(self.events)
+        self.clients_counter[ClientType.REAL_CLIENT] = len(self.events)
 
     def handle_events(self, lambda_param):
         """
@@ -106,21 +111,13 @@ class Simulation():
                         EventType.IN_EVENT,
                         ClientType.IMAGINED_CLIENT)
                     self.events.append(new_event)
+                    self.clients_counter[ClientType.IMAGINED_CLIENT] += 1
             # Sort events on event list and get stats
             self.events = self.sort_events()
             self.add_stats(current_event)
             self.add_clients_stats()
 
-        return self.stats_event, self.clients_stats
-
-    def all_server_stats(self):
-        """
-        Return server stats
-        """
-        return {
-            "all_clients": self.server.all_clients,
-            "all_clients_queue": self.server.all_clients_in_queue
-        }
+        return self.stats_event, self.clients_stats, self.clients_counter
 
     def add_clients_stats(self):
         """
@@ -167,6 +164,8 @@ class Simulation():
         return self.handle_events(lambda_param)
 
     def clear(self):
+        self.clients_counter[ClientType.REAL_CLIENT] = 0
+        self.clients_counter[ClientType.IMAGINED_CLIENT] = 0
         self.clients_stats.clear()
         self.events.clear()
         self.stats_event.clear()

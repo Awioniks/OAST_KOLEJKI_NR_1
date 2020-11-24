@@ -16,20 +16,22 @@ def simulate(simulation_type):
     sim = Simulation(simulation_type)
     results = defaultdict(list)
     client_results = defaultdict(list)
+    client_counter_results = defaultdict(list)
     for lambda_value in c.LAMBDA_RATES:
         for _ in range(c.REPLICANTS):
-            result, client_result = sim.run(lambda_value)
+            result, client_result, clients_counter = sim.run(lambda_value)
             results[lambda_value].append(result.copy())
             client_results[lambda_value] = (client_result.copy())
+            client_counter_results[lambda_value].append(clients_counter.copy())
             sim.clear()
-    return results, client_results
+    return results, client_results, client_counter_results
 
 
 if __name__ == '__main__':
-    results, client_results = {}, {}
+    results, client_results, client_counters = {}, {}, {}
     for sim_type in [SimType.COM_SIM, SimType.CON_SIM]:
-        results[sim_type], client_results[sim_type] = simulate(sim_type)
+        results[sim_type], client_results[sim_type], client_counters[sim_type] = (
+            simulate(sim_type))
     for sim_type in [SimType.COM_SIM, SimType.CON_SIM]:
         stats.show_statistics(
-            sim_type, results[sim_type], client_results[sim_type])
-
+            sim_type, results[sim_type], client_results[sim_type], client_counters[sim_type])

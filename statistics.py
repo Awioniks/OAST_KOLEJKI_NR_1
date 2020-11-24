@@ -5,10 +5,10 @@ import numpy as np
 from collections import defaultdict
 from random import random
 import config as c
-from simulation import SimType, EventType
+from simulation import SimType, EventType, ClientType
 
 
-def show_statistics(simulation_type, results, client_results):
+def show_statistics(simulation_type, results, client_results, client_counters):
     """
     Show statistics from queue.
     """
@@ -19,17 +19,20 @@ def show_statistics(simulation_type, results, client_results):
         avg_delays, p0_t = calculate_delays_pO_values(results)
         avg_delay = calculate_avg_delay_wait(avg_delays)
         for lambda_rate in avg_delay:
+            rate = lambda_rate/c.MI_RATE
             avg = avg_delay[lambda_rate]
             # Caculate analytical delay.
             delay_analytical = 1 / (c.MI_RATE - lambda_rate)
-            stat = '\n{}. - lambda_rate, {:f} - avg, {:f} - avg analytical '.format(
-                lambda_rate, avg, delay_analytical)
+            stat = '{}. - rate, {:f} - avg, {:f} - avg analytical '.format(
+                rate, avg, delay_analytical)
             print(stat)
     elif simulation_type == SimType.CON_SIM:
+        print()
         qu_times, avg_delays = calculate_avg_time_in_queue(results)
         avg_delay = calculate_avg_delay_wait(avg_delays)
         avg_qu = calculate_avg_delay_wait(qu_times)
         cl_stats = calculate_client_stats(client_results)
+        cl_counter_stats = calculate_client_counters(client_counters)
         for lambda_rate in avg_delay:
             avg_d = avg_delay[lambda_rate]
             avg_q = avg_qu[lambda_rate]
@@ -37,8 +40,8 @@ def show_statistics(simulation_type, results, client_results):
             rate = lambda_rate/c.MI_RATE
             delay_analytical = ((2 - rate) * rate) / (lambda_rate * (1 - rate))
             wait_analytical = rate / (lambda_rate * (1 - rate))
-            stat = '\n{}. - lambda_rate, {:f} - avg_delay, {:f} - avg_delay_analytical'.format(
-                lambda_rate, avg_d, delay_analytical)
+            stat = '\n{}. - rate, {:f} - avg_delay, {:f} - avg_delay_analytical'.format(
+                rate, avg_d, delay_analytical)
             print(stat)
             stat = '{:f} - avg_wait, {:f} - avg_wait_analytical'.format(
                 avg_q, wait_analytical)
@@ -51,9 +54,30 @@ def show_statistics(simulation_type, results, client_results):
             stat = '{:f} - avg_client_in_system, {:f} - avg_client_in_system_analytical'.format(
                 in_sys, an_nr_clients_in_system)
             print(stat)
-            stat = '{:f} - avg_client_in_queue, {:f} - avg_client_in_queue_analytical\n'.format(
+            stat = '{:f} - avg_client_in_queue, {:f} - avg_client_in_queue_analytical'.format(
                 in_q, an_nr_clients_in_queue)
             print(stat)
+            # Calculate clients counters.
+            im_clients = cl_counter_stats[lambda_rate][ClientType.IMAGINED_CLIENT]
+            real_clients = cl_counter_stats[lambda_rate][ClientType.REAL_CLIENT]
+            im_propability = im_clients / (im_clients + real_clients)
+            stat = '{:f} - imagine client propability\n'.format(im_propability)
+            print(stat)
+
+
+def calculate_client_counters(client_counters):
+    """
+    Calculate imagined and real clients statistics. 
+    """
+    counters = defaultdict(dict)
+    for lambda_param, stats in client_counters.items():
+        imagined_counter, real_counter = 0, 0
+        for stat_value in stats:
+            imagined_counter += stat_value[ClientType.IMAGINED_CLIENT]
+            real_counter += stat_value[ClientType.REAL_CLIENT]
+        counters[lambda_param][ClientType.IMAGINED_CLIENT] = imagined_counter
+        counters[lambda_param][ClientType.REAL_CLIENT] = real_counter
+    return counters
 
 
 def calculate_client_stats(client_results):

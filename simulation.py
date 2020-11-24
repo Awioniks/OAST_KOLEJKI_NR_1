@@ -61,6 +61,8 @@ class Simulation():
         self.real_clients = len(self.events)
         self.clients_counter[ClientType.REAL_CLIENT] = len(self.events)
 
+
+
     def handle_events(self, lambda_param):
         """
         Handle consecutive events in system.

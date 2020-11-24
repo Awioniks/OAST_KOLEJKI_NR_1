@@ -56,6 +56,8 @@ class Simulation():
         self.events = self.sort_events()
         self.real_clients = len(self.events)
 
+
+
     def handle_events(self, lambda_param):
         """
         Handle consecutive events in system.

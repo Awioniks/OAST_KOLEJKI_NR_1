@@ -26,12 +26,13 @@ def show_statistics(simulation_type, results, client_results):
             stat = '\n{}. - lambda_rate, {:f} - avg, {:f} - avg analytical '.format(
                 lambda_rate, avg, delay_analytical)
             print(stat)
-            # print(p0_x[lambda_rate])
-            # print(p0_y[lambda_rate])
             # draw plot
             x = np.array(p0_x[lambda_rate])
             y = np.array(p0_y[lambda_rate])
-            mpl.plot(x, y)
+            m, b = np.polyfit(x, y, 1)
+            mpl.plot(x, m * x + b, 'r-')
+            mpl.xlabel('Time')
+            mpl.ylabel('Probability')
             mpl.show()
 
     elif simulation_type == SimType.CON_SIM:

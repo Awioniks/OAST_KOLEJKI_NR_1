@@ -5,14 +5,9 @@ import numpy as np
 from collections import defaultdict
 from random import random
 import config as c
-<<<<<<< HEAD
 from simulation import SimType, EventType
 import matplotlib.pyplot as mpl
 from config import RATES_OF_OCCUPANCE, LAMBDA_RATES
-=======
-from simulation import SimType, EventType, ClientType
-import matplotlib.pyplot as mpl
->>>>>>> 7fc67ae... -drawing plot p0(t)
 
 
 def show_statistics(simulation_type, results, client_results, client_counters):
@@ -23,11 +18,7 @@ def show_statistics(simulation_type, results, client_results, client_counters):
         10 * '*', simulation_type, 10 * '*')
     print(title)
     if simulation_type == SimType.COM_SIM:
-<<<<<<< HEAD
         avg_delays, p0_x, p0_y, p0l2, p0l4, p0l6 = calculate_delays_pO_values(results)
-=======
-        avg_delays, p0_x, p0_y = calculate_delays_pO_values(results)
->>>>>>> 7fc67ae... -drawing plot p0(t)
         avg_delay = calculate_avg_delay_wait(avg_delays)
         for lambda_rate in avg_delay:
             rate = lambda_rate/c.MI_RATE
@@ -181,17 +172,12 @@ def calculate_delays_pO_values(results):
                 x0 = (delay - qu_time) / (delay)
                 avg_delays[lambda_param].append(delay)
                 p0_x[lambda_param].append(oc_in_time)
-<<<<<<< HEAD
                 p0_y[lambda_param].append(x0)
                 p0l2 = 1 - RATES_OF_OCCUPANCE[0] #lambda = 2
                 p0l4 = 1 - RATES_OF_OCCUPANCE[1] #lambda = 4
                 p0l6 = 1 - RATES_OF_OCCUPANCE[2] #lambda = 6
 
     return avg_delays, p0_x, p0_y, p0l2, p0l4, p0l6
-=======
-                p0_y[lambda_param].append(p0)
-    return avg_delays, p0_x, p0_y
->>>>>>> 7fc67ae... -drawing plot p0(t)
 
 
 def expotential_value(lambda_value):

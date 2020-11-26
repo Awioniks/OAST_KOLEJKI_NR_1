@@ -38,7 +38,13 @@ def show_statistics(simulation_type, results, client_results):
             y3 = np.array(p0_y[LAMBDA_RATES[2]])
             p3 = np.poly1d(np.polyfit(x3, y3, 3))
             t = np.linspace(0, 200, 200)
-            mpl.plot(t, p1(t), 'g-', t, p2(t), 'b-', t, p3(t), 'r-', p0l2, 'g-o', p0l4, 'b-o', p0l6, 'r-o')
+            xp0 = [0, 200]
+            yp0l2 = [p0l2, p0l2]
+            yp0l4 = [p0l4, p0l4]
+            yp0l6 = [p0l6, p0l6]
+
+            mpl.plot(t, p1(t), 'g-', t, p2(t), 'b-', t, p3(t), 'r-', xp0, yp0l2, 'g-o', xp0, yp0l4, 'b-o', xp0, yp0l6,
+                     'r-o')
             mpl.xlabel('Time')
             mpl.ylabel('Probability')
             mpl.title("p0(t) for lambda = [2.0, 4.0, 6.0]")

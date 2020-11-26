@@ -7,6 +7,7 @@ from random import random
 import config as c
 from simulation import SimType, EventType
 import matplotlib.pyplot as mpl
+from config import RATES_OF_OCCUPANCE, LAMBDA_RATES
 
 
 def show_statistics(simulation_type, results, client_results):
@@ -17,7 +18,7 @@ def show_statistics(simulation_type, results, client_results):
         10 * '*', simulation_type, 10 * '*')
     print(title)
     if simulation_type == SimType.COM_SIM:
-        avg_delays, p0_x, p0_y = calculate_delays_pO_values(results)
+        avg_delays, p0_x, p0_y, p0l2, p0l4, p0l6 = calculate_delays_pO_values(results)
         avg_delay = calculate_avg_delay_wait(avg_delays)
         for lambda_rate in avg_delay:
             avg = avg_delay[lambda_rate]
@@ -27,14 +28,24 @@ def show_statistics(simulation_type, results, client_results):
                 lambda_rate, avg, delay_analytical)
             print(stat)
             # draw plot
-            x = np.array(p0_x[lambda_rate])
-            y = np.array(p0_y[lambda_rate])
-            m, b = np.polyfit(x, y, 1)
-            mpl.plot(x, m * x + b, 'r-')
+            x1 = np.array(p0_x[LAMBDA_RATES[0]])
+            y1 = np.array(p0_y[LAMBDA_RATES[0]])
+            p1 = np.poly1d(np.polyfit(x1, y1, 3))
+            x2 = np.array(p0_x[LAMBDA_RATES[1]])
+            y2 = np.array(p0_y[LAMBDA_RATES[1]])
+            p2 = np.poly1d(np.polyfit(x2, y2, 3))
+            x3 = np.array(p0_x[LAMBDA_RATES[2]])
+            y3 = np.array(p0_y[LAMBDA_RATES[2]])
+            p3 = np.poly1d(np.polyfit(x3, y3, 3))
+            t = np.linspace(0, 200, 200)
+            mpl.plot(t, p1(t), 'g-', t, p2(t), 'b-', t, p3(t), 'r-', p0l2, 'g-o', p0l4, 'b-o', p0l6, 'r-o')
             mpl.xlabel('Time')
             mpl.ylabel('Probability')
-            mpl.title("p0(t) for lambda = {:f} ".format(lambda_rate))
-            mpl.show()
+            mpl.title("p0(t) for lambda = [2.0, 4.0, 6.0]")
+            mpl.legend(
+                ['p0(t) for lambda 2.0', 'p0(t) for lambda 4.0', 'p0(t) for lambda 6.0', 'p0 for lambda 2.0',
+                 'p0 for lambda 4.0',
+                 'p0 for lambda 6.0'], prop={'size': 5}, loc='lower right')
 
     elif simulation_type == SimType.CON_SIM:
         qu_times, avg_delays = calculate_avg_time_in_queue(results)
@@ -65,6 +76,7 @@ def show_statistics(simulation_type, results, client_results):
             stat = '{:f} - avg_client_in_queue, {:f} - avg_client_in_queue_analytical\n'.format(
                 in_q, an_nr_clients_in_queue)
             print(stat)
+            mpl.show()
 
 
 def calculate_client_stats(client_results):
@@ -128,11 +140,15 @@ def calculate_delays_pO_values(results):
                 qu_time = rep[EventType.OUT_EVENT][client_id][1]
                 # Calculate avg delays and p0(t) here.
                 delay = oc_out_time - oc_in_time
-                p0 = (delay - qu_time) / (delay)
+                x0 = (delay - qu_time) / (delay)
                 avg_delays[lambda_param].append(delay)
                 p0_x[lambda_param].append(oc_in_time)
-                p0_y[lambda_param].append(p0)
-    return avg_delays, p0_x, p0_y
+                p0_y[lambda_param].append(x0)
+                p0l2 = 1 - RATES_OF_OCCUPANCE[0] #lambda = 2
+                p0l4 = 1 - RATES_OF_OCCUPANCE[1] #lambda = 4
+                p0l6 = 1 - RATES_OF_OCCUPANCE[2] #lambda = 6
+
+    return avg_delays, p0_x, p0_y, p0l2, p0l4, p0l6
 
 
 def expotential_value(lambda_value):

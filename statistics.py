@@ -5,7 +5,7 @@ import numpy as np
 from collections import defaultdict
 from random import random
 import config as c
-from simulation import SimType, EventType
+from simulation import SimType, EventType, ClientType
 import matplotlib.pyplot as mpl
 from config import RATES_OF_OCCUPANCE, LAMBDA_RATES
 
@@ -85,7 +85,6 @@ def show_statistics(simulation_type, results, client_results, client_counters):
             stat = '{:f} - avg_client_in_queue, {:f} - avg_client_in_queue_analytical'.format(
                 in_q, an_nr_clients_in_queue)
             print(stat)
-<<<<<<< HEAD
             # Calculate clients counters.
             im_clients = cl_counter_stats[lambda_rate][ClientType.IMAGINED_CLIENT]
             real_clients = cl_counter_stats[lambda_rate][ClientType.REAL_CLIENT]
@@ -107,9 +106,6 @@ def calculate_client_counters(client_counters):
         counters[lambda_param][ClientType.IMAGINED_CLIENT] = imagined_counter
         counters[lambda_param][ClientType.REAL_CLIENT] = real_counter
     return counters
-=======
-            mpl.show()
->>>>>>> f3073354f01f58aa3b033cf249dd1805264c3b74
 
 
 def calculate_client_stats(client_results):

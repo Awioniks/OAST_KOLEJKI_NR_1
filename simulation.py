@@ -90,7 +90,9 @@ class Simulation():
                     self.real_clients -= 1
                 self.server.delete_client(current_event.client_id)
                 # Create new out event from queue.
+                # Here you can test const imagined client time in server
                 time_in_server = stat.expotential_value(c.MI_RATE)
+                # time_in_server = c.TIME_IN_SERVER
                 if not self.server.is_queue_empty():
                     logging.info("Server occupied")
                     cl_id, cl_time = self.server.get_queue_first_client()

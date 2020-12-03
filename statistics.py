@@ -5,7 +5,7 @@ import numpy as np
 from collections import defaultdict
 from random import random
 import config as c
-from simulation import SimType, EventType
+from simulation import SimType, EventType, ClientType
 import matplotlib.pyplot as mpl
 from config import RATES_OF_OCCUPANCE, LAMBDA_RATES
 
